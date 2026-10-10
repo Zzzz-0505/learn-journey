@@ -1,0 +1,12 @@
+{
+  "season": "spring",
+  "months": ["March", "April", "May"],
+  "description": "万物复苏的季节",
+  "temperature": {
+    "min": 10,
+    "max": 25,
+    "unit": "Celsius"
+  },
+  "activities": ["踏青", "赏花", "春游"],
+  "isActive": true
+}
