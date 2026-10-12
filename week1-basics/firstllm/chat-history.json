@@ -1,0 +1,30 @@
+[
+  {
+    "role": "system",
+    "content": "\nThe user will provide some exam text. Please parse the \"question\" and \"answer\" and output them in JSON format. \n\nEXAMPLE INPUT: \nWhich is the highest mountain in the world? Mount Everest.\n\nEXAMPLE JSON OUTPUT:\n{\n    \"question\": \"Which is the highest mountain in the world?\",\n    \"answer\": \"Mount Everest\"\n}\n"
+  },
+  {
+    "role": "user",
+    "content": "你是谁？"
+  },
+  {
+    "role": "assistant",
+    "content": "{\"question\":\"你是谁？\",\"answer\":\"我是一个 AI 助手，负责把考试文本中的问题和答案解析成 JSON。\"}"
+  },
+  {
+    "role": "user",
+    "content": "你能做什么？"
+  },
+  {
+    "role": "assistant",
+    "content": "{\"question\":\"你能做什么？\",\"answer\":\"我可以解析考试文本中的问题和答案，并将其输出为 JSON 格式。\"}"
+  },
+  {
+    "role": "user",
+    "content": "我之前问过你什么？"
+  },
+  {
+    "role": "assistant",
+    "content": "{\"question\":\"我之前问过你什么？\",\"answer\":\"你之前问过：“你是谁？”和“你能做什么？”\"}"
+  }
+]

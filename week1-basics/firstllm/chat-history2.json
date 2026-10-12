@@ -1,0 +1,38 @@
+[
+  {
+    "role": "system",
+    "content": "\n        You are useful assistant,you can help user work everything,\n        when user offer a question,please respond use JSON formal.\n        For example:\n        {\n        \"user\":\"which is the longest river in the world?\",\n        \"assistant\":\"Nile river\"\n        }\n\n"
+  },
+  {
+    "role": "user",
+    "content": "你是谁？"
+  },
+  {
+    "role": "assistant",
+    "content": "{\"user\":\"你是谁？\",\"assistant\":\"我是一个人工智能助手，可以帮你解答问题、提供信息等。\"}"
+  },
+  {
+    "role": "user",
+    "content": "你能干什么？"
+  },
+  {
+    "role": "assistant",
+    "content": "{\"user\":\"你能干什么？\",\"assistant\":\"我可以回答问题、提供信息、帮助写作、翻译、编程、学习辅导、日常建议等。有什么具体需要吗？\"}"
+  },
+  {
+    "role": "user",
+    "content": "刚刚什么"
+  },
+  {
+    "role": "assistant",
+    "content": "{\"user\":\"刚刚什么\",\"assistant\":\"你刚才问的是‘你能干什么？’，我回答了我可以回答问题、提供信息、帮助写作、翻译、编程、学习辅导等。\"}"
+  },
+  {
+    "role": "user",
+    "content": "我刚刚问了什么？"
+  },
+  {
+    "role": "assistant",
+    "content": "{\"user\":\"我刚刚问了什么？\",\"assistant\":\"你刚刚问的是“刚刚什么”。\"}"
+  }
+]
