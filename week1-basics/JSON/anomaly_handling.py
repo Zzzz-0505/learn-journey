@@ -15,8 +15,8 @@ def anomaly_handling(path):
 
 
 if __name__ == "__main__":
-    print(anomaly_handling("week1-basics/season.json"))
-    print(anomaly_handling("week1-basics/no_exist.json"))
-    print(anomaly_handling("week1-basics/bad.json"))
-    print(anomaly_handling("week1-basics/no_permission.json"))
+    print(anomaly_handling("week1-basics/JSON/season.json"),end="\n")
+    print(anomaly_handling("week1-basics/JSON/no_exist.json"),end="\n")
+    print(anomaly_handling("week1-basics/JSON/bad.json"),end="\n")
+    print(anomaly_handling("week1-basics/JSON/no_permission.json"),end="\n")
  

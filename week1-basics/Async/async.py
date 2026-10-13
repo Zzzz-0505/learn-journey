@@ -2,21 +2,23 @@ import httpx
 from time import perf_counter
 import asyncio
 
-OPEN_API="https://api.open-meteo.com/v1/forecast"
+OPEN_URL="https://api.open-meteo.com/v1/forecast"
 TIME_OUT=10
 PARAMS={
     "latitude": 40.7128,
     "longitude": -74.0060,
     "current_weather": True
 }
-URL=""
 
 def count_time_sync(url,params=None):
     start_time = perf_counter()
+    i = 1
     try:
-        res = httpx.get(url=url,params=params,timeout=TIME_OUT)
-        res.raise_for_status()
-        data = res.json()
+        while i < 6:   
+            res = httpx.get(url=url,params=params,timeout=TIME_OUT)
+            res.raise_for_status()
+            data = res.json()
+            i += 1
         end_time = perf_counter()
         return {"ok":True,"sync_content":data,"sync_time":end_time - start_time,"error":None}
     except httpx.TimeoutException:
@@ -54,13 +56,18 @@ async def count_time_async(url,params=None):
         end_time = perf_counter()
         return {"ok":False,"async_content":None,"async_time":end_time - start_time,"error":"httpx请求异常"}
          
-   
-def main():
-    sync_result = count_time_sync(OPEN_API,PARAMS)
-    async_result = asyncio.run(count_time_async(OPEN_API, PARAMS))
-    print(sync_result)
-    print(async_result)
+
+async def main():
+    sync_result = count_time_sync(OPEN_URL,PARAMS)
+    
+    async_start = perf_counter()
+    tasks = [count_time_async(OPEN_URL, PARAMS) for _ in range(5)]
+    results = await asyncio.gather(*tasks)
+    async_total = perf_counter() - async_start
+
+    print(sync_result['sync_time'])
+    print(async_total)
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
 
