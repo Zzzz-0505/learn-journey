@@ -62,11 +62,11 @@ async def main():
     
     async_start = perf_counter()
     tasks = [count_time_async(OPEN_URL, PARAMS) for _ in range(5)]
-    results = await asyncio.gather(*tasks)
+    await asyncio.gather(*tasks)
     async_total = perf_counter() - async_start
 
     print(sync_result['sync_time'])
-    print(async_total)
+    print(async_total)  
 
 if __name__ == "__main__":
     asyncio.run(main())

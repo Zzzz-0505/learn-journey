@@ -145,8 +145,8 @@
 
 4.在处理记数的时候，使用get去更改键的值。get 的价值就是"键不存在时不报错，给个兜底值"  
 
-    更好的代替：现在可以用collections.Counter或者collections.defaultdict
-    ‘’‘ from collections import defaultdict
+```更好的代替：现在可以用collections.Counter或者collections.defaultdict
+        from collections import defaultdict
             d = defaultdict(int)     # 默认值是 0（int() 返回 0）
                 for word in line.split():
                 d[word] += 1   
@@ -157,7 +157,66 @@
                 words.extend(line.split())
             d = Counter(words)       # 直接统计好词频
 
+```
 
-    
 ## Day5
+今天：阅读HPPTX官方文档，
 
+
+难点：
+
+明天：
+
+1.还需要强化的单词：
+
+```
+custom       自定义的、定制的
+
+additional      额外的、附加的
+
+outgoing      发出的、传出的
+
+keyword argument      关键字参数
+
+complicated      复杂的
+
+instead      代替、转而、反而
+
+generator      生成器
+
+inspect      检查、查看
+
+text phrase      文本短语
+
+instance      实例
+
+method      方法
+
+interface      接口
+
+case-insensitive      不区分大小写的
+
+capitalization      大小写形式
+
+recipient      接收方
+
+semantics      语义
+
+subsequent      随后的、后续的
+    
+```
+
+2.在并发异步实现之中,用列表解包实现多个任务
+
+```   
+元组、生成器、集合、任何可迭代对象都能被 * 解包;
+列表是最自然的"收集容器"；
+列表推导式写起来最简洁，[f(i) for i in ...] 天然生成列表；
+列表有序，能保证 gather 的返回顺序和你的预期一致；
+列表可读性强，一看就知道是"一批任务"    
+```
+3.无
+
+```
+
+```
