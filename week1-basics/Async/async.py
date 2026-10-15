@@ -58,16 +58,25 @@ async def count_time_async(url,params=None):
          
 
 async def main():
-    sync_result = count_time_sync(OPEN_URL,PARAMS)
-    
-    async_start = perf_counter()
-    tasks = [count_time_async(OPEN_URL, PARAMS) for _ in range(5)]
-    await asyncio.gather(*tasks)
-    async_total = perf_counter() - async_start
+    try:
+        sync_result = count_time_sync(OPEN_URL,PARAMS)
 
-    print(sync_result['sync_time'])
-    print(async_total)  
+        async_start = perf_counter()
+        tasks = [count_time_async(OPEN_URL, PARAMS) for _ in range(5)]
+        result = await asyncio.gather(*tasks)
+        async_total = perf_counter() - async_start
 
+        print(sync_result['sync_time'])
+        print(async_total)  
+    except httpx.TimeoutException:
+            return {"ok":False,"async_content":None,"async_time": async_total,"error":"获取超时"}
+    except httpx.ConnectError:
+            return {"ok":False,"async_content":None,"async_time": async_total,"error":"连接错误"}
+    except httpx.HTTPStatusError:
+            return {"ok":False,"async_content":None,"async_time": async_total,"error":"4xx/5xx"}
+    except httpx.RequestError:
+            return {"ok":False,"async_content":None,"async_time": async_total,"error":"httpx请求异常"}
+             
 if __name__ == "__main__":
     asyncio.run(main())
 
