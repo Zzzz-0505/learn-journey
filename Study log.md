@@ -252,3 +252,32 @@ subsequent      随后的、后续的
 ---
 
 ## Day7
+今天：先补充完SQLite操作，学习MQTT传输协议内容
+
+难点：在毕设设计，大模型部分，设计LangGragh的流程又忘记了，之前写的没印象
+
+明天：先复习LangGraph语法部分，实现最小闭环
+
+1.SQLite语法的关键：
+
+```
+代码	                        比喻	        作用
+conn = sqlite3.connect(...)	打开本子	        建立连接
+c = conn.cursor()	        拿笔	        创建游标，用来执行 SQL
+c.execute(...)	                写字	        执行一条 SQL
+conn.commit()	                按保存	        让增删改真正生效
+conn.close()	                合本子	        关闭连接
+```
+
+
+---
+
+## Day8
+今天：
+
+难点：
+
+明天：
+
+1.
+
