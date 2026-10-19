@@ -273,11 +273,82 @@ conn.close()	                合本子	        关闭连接
 ---
 
 ## Day8
-今天：
+今天:阅读了FastAPI官方文档、体验接口功能和页面调试、学习了通过接口api来实现简单的增删改查操作
 
 难点：
 
-明天：
+明天：把增删改查接入到本地文里
 
-1.
+1.在FastAPI中输入路径参数的时候，要注意顺序，在下面这种场景，要先找me的和其他id的
+```python
+from fastapi import FastAPI
+
+app = FastAPI()
+
+
+@app.get("/users/me")
+async def read_user_me():
+    return {"user_id": "the current user"}
+
+
+@app.get("/users/{user_id}")
+async def read_user(user_id: str):
+    return {"user_id": user_id}
+ 
+```
+
+2.如果路径操作接收一个路径参数，但希望可能有效的路径参数值是预设的，可以使用标准 Python Enum。以下通过python枚举和获取枚举值的方法去得到值
+```py
+class ModelName(str, Enum):
+    alexnet = "alexnet"
+    resnet = "resnet"
+    lenet = "lenet"
+    
+@app.get("/models/{model_name}")
+async def get_model(model_name: ModelName):
+    if model_name is ModelName.alexnet:
+        return {"model_name": model_name, "message": "Deep Learning FTW!"}
+
+    if model_name.value == "lenet":
+        return {"model_name": model_name, "message": "LeCNN all the images"}
+
+    return {"model_name": model_name, "message": "Have some residuals"}    
+```
+3.在参数的选择中，只要是函数参数，且名字没有出现在大括号里，那它就是查询参数，并且查询参数如果没有设置默认值，就会默认必填，不写会报错
+
+4.在HTTP协议中，没有规定某种方法代表什么功能，GET、POST、PUT、DELETE 只是名字不同，它们都能携带路径参数、查询参数和请求体（Body）；在 FastAPI 里写一个带路径参数和查询参数的 POST 请求时，它执行的命令本质上仍然是：“向指定的 URL 提交一份数据（Body），同时附带一些附加条件（Path/Query）。”
+
+5.在查询参数需要添加约束的情况，可以通过Annotated和Query实现
+```py
+from typing import Annotated
+
+from fastapi import FastAPI, Query
+
+app = FastAPI()
+
+
+@app.get("/items/")
+async def read_items(q: Annotated[str | None, Query(max_length=50)] = None):
+    results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+    if q:
+        results.update({"q": q})
+    return results
+```
+这样可以实现，约束q是可以选，但如果有参数，其长度不超过50个字符
+
+6.Annotated在FastAPI里的三大经典用途：
+    1）强制指定参数类型（Query，Path，Body，Header）
+    2）请求体的多参数（多个Pydantic模型）
+    3）依赖注入（Dependencies）
+
+
+
+
+
+
+
+
+
+
+
 
