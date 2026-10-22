@@ -1,6 +1,8 @@
 from fastapi import FastAPI,Query,HTTPException
 from pydantic import BaseModel
 from typing import Annotated
+from  pathlib import Path
+import json
 
 
 app = FastAPI()
@@ -107,31 +109,54 @@ class Item(BaseModel):
     prize:float
 
 fake_db = {}
+path = Path(__file__).parent / "history.json"
+
+def open_file() ->dict:
+    if not path.exists():
+        return {}
+    with open(path,"r",encoding="utf-8")as f:
+        data = json.load(f)
+    return data if isinstance(data, dict) else {}
+
+def save_file(data):
+    with open(path,"w",encoding="utf-8")as f:
+        json.dump(data,f,ensure_ascii=False,indent=2)
 
 @app.get("/items/{item_id}")
-async def create_item(item_id:int):
-    if item_id  not in fake_db:
-        raise HTTPException(status_code=404,detail="not found this goods")
-
-    return fake_db[item_id]
+async def read_item(item_id:int):
+    db = open_file()
+    key = str(item_id)
+    if key not in db:
+        raise HTTPException(404, "not found this goods")
+    return db[key]
 
 @app.post("/items/{item_id}")
-async def read_item(item_id:int,item:Item):
-    if item_id  in fake_db:
-        raise HTTPException(status_code=400,detail="ID already exist")
-    fake_db[item_id] = item.model_dump()
-    return {"message":"save successful","data":fake_db[item_id]}
+async def create_item(item_id:int,item:Item):
+    db = open_file()
+    key = str(item_id)
+    if key in db:
+        raise HTTPException(404, "this goods already exist")
+    db[key] = item.model_dump()
+    save_file(db)
+    return {"message":"save successful","data":db[key]}
 
 @app.put("/items/{item_id}")
 async def updata_item(item_id:int,item:Item):
-    if item_id not in fake_db:
-        raise HTTPException(status_code=404,detail="not found this goods")
-    fake_db[item_id] = item.model_dump()
-    return {"message":"updata successful","data":fake_db[item_id]}
+    db = open_file()
+    key = str(item_id)
+    if key not in db:
+        raise HTTPException(404, "not found this goods")
+    db[key] = item.model_dump()
+    save_file(db)
+    
+    return {"message":"updata successful","data":db[key]}
 
 @app.delete("/items/{item_id}")
 async def delete_item(item_id:int):
-    if item_id not in fake_db:
-        raise HTTPException(status_code=404,detail="not found this goods")
-    del fake_db[item_id]
+    db = open_file()
+    key = str(item_id)
+    if key not in db:
+        raise HTTPException(404, "not found this goods")
+    del db[key]
+    save_file(db)
     return{"message":"delete successful"}

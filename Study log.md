@@ -342,9 +342,72 @@ async def read_items(q: Annotated[str | None, Query(max_length=50)] = None):
     3）依赖注入（Dependencies）
 
 
+## Day9
+今天：完成FastAPI加json文件读写，实现本地文件管理数据；
+
+难点：1.if any(t.id == thing.id for t in todo_list):
+            any 是 Python 内置函数：只要可迭代对象里有任意一个值为真（truthy），就返回 True；全为假才返回 False。
+            这是属于生成器语法：（表达式  for 变量 in 可迭代对象  [if 过滤条件]）
+           2. sqlalchemy的分层，每一个模块负责的功能难以理解
 
 
+明天：
 
+1.pydantic的作用就是在一个文件里，事先定义好一个个类，里面写了一些必须的参数和参数类型，然后在函数输入或输出的参数里，加入定义好的类实现检验；它还可以自动生成JSON Schema，在Field里写的description、example，都会直接出现在Swagger UI文档里            
+
+2.文件分层，可以实现更好的调试，把每一个部分的功能，存在每一个不同的文件里
+    主要优势：
+                    实现职责分层
+                    可读性与定位极快
+                    可测试
+                    可拓展性
+    企业级项目分层一般有3/4层：
+                1.路由层（Router / API）：处理 HTTP 请求、依赖注入（你现在的 main.py）。
+                2.业务逻辑层（Service）：处理核心业务逻辑（例如：发邮件、算折扣、权限判断）。
+                3.数据访问层（Repository / CRUD）：专门写 SQL 增删改查的逻辑（比如 crud/todo.py）。
+                4.模型层（Models / Schemas）：数据结构定义。
+
+3.sqlalchemy的实现是先继承declarative_base()大类，通过定义类的方式去创建数据表,具体代码如下：
+```py
+Base = declarative_base()
+
+
+class Person(Base):
+    __tablename__ = "people"
+    
+    ssn = Column("ssn",Integer,primary_key=True)
+    firstname = Column("firstname",String)
+    lastname = Column("lastname",String)
+    gender = Column("gender",CHAR)
+    age = Column("age",Integer)
+
+    def __init__(self,ssn,first,last,gender,age):
+        self.ssn = ssn
+        self.firstname = first
+        self.lastname = last
+        self.gender = gender
+        self.age = age
+#指定打印形式
+    def __repr__(self):
+        return f"({self.ssn}){self.firstname}{self.lastname}({self.gender},{self.age})"
+```
+
+
+4.所有模块里的依赖注入，本质都是为了切断组件之间的直接联系，把控制权反转（IoC）交给框架。这让你能专注写纯粹的业务逻辑，而不是陷在“连接、关闭、清理”的无底洞里。
+依赖注入核心本质在解决以下四个问题：
+                        1.解耦（把“使用”和“制造”分开）
+                        2.自动化生命周期管理（只管借，不管还）
+                        3.可替换性（方便测试 Mock）
+                        4.声明式编程（少写代码，多看逻辑）
+
+## Day10
+今天：
+
+难点：
+
+明天：
+
+1.无
 
 
 
