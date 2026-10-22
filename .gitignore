@@ -5,3 +5,11 @@ AI应用开发_2027届求职市场情报.md
 .DS_Store
 项目自查表.md
 week1-复盘清单.md
+
+__pycache__/
+*.pyc
+
+
+.idea/
+
+*.db
