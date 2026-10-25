@@ -101,5 +101,5 @@ def test_get_username_with_mock(mocker):
 
     result = service.get_username(1) # Call method that depends on the mock
     # Assertions
-    assert result == "Alice"    # Check if processing was done correctly
+    assert result == "ALICE"    # Check if processing was done correctly
     mock_api_client.get_user_data.assert_called_once_with(1) #Ensure correct API call
