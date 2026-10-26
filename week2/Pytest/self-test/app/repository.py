@@ -1,10 +1,10 @@
 #管数据
-from schemas import TodoCreate,TodoOut
-from exceptions import NotFoundError,DuplicateError
+from app.schemas import TodoCreate,TodoOut
+from app.exceptions import NotFoundError,DuplicateError
 
 class TodoRepository():#它代表货架，不代表货
     def __init__(self):
-        self._store = dict[int,TodoOut] = {}
+        self._store :dict[int,TodoOut] = {}
         self._next_id = 1
 
     def create(self,data:TodoCreate) -> TodoOut:

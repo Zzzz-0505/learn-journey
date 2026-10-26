@@ -431,9 +431,75 @@ class Person(Base):
    签名是承诺：只要写了->[格式]，return就要返回相应格式
    查重（可能raise）在循环里，构造+落库+return在循环外
 
+## Day12
+今天：学习pytest.raises和assert两种报错方式， 采用@pytest.fixture装饰器去实现测试隔离，
 
+难点：
 
+明天：
 
+1.关于pytest.raises vs assert 的区别
+    assert 不关心"报不报错"，只关心"表达式的结果是不是 truthy"。如果表达式本身抛异常（比如 assert TodoCreate(title="")，构造时抛 ValidationError），那 assert 根本轮不到执行——异常先冒出来，测试红，但红的理由是"异常没被捕获"，不是"assert 失败"。
+
+测"应该成功的东西" → 用 assert（断言返回值/字段值）
+测"应该抛异常的代码" → 用 pytest.raises（否则异常冒出来测试就红）
+
+所以判断用哪个，只有一个问题：这个输入，按设计应该成功还是失败？ 成功 → assert；失败 → pytest.raises。
+
+2.在验证正确的用例时，"应通过"的用例，assert 必须断言到"具体字段值/具体缺失"，不能 assert obj。 assert obj 只证明"能构造"，不证明"构造对了"。
+
+3.fixture 是"测试的准备工作"——在测试函数运行前，自动帮你准备好它需要的东西（一个 repo、一条数据、一个临时文件、一个 HTTP 客户端），测试函数只管"用"，不管"造"。
+
+它和 mock 的区别：
+
+| | `fixture` | `mock` |
+|---|---|---|
+| 是什么 | **真实对象**的"准备+清理"机制 | **假对象**（替身），模拟真实对象的行为 |
+| 例 | 真的 `TodoRepository()`，真的 `TestClient(app)` | 用 `Mock()` 假装一个数据库，返回预设值 |
+| 目的 | 让测试**拿到干净的真实依赖** | 让测试**不依赖真实外部系统**（数据库、网络） |
+| 你项目里 | 用 `fixture` 造真 repo | **暂时用不到 mock**（你的 repo 是内存版，本身就是"测试友好的真实对象"） |
+
+你的 `TodoRepository` 是内存 dict，它本身就是"不依赖外部数据库"的真实对象——所以你**不需要 mock 一个数据库**，你直接 `fixture` 返回一个真的 `TodoRepository()` 就行。**mock 是"外部依赖太重/太慢/不可控"时才用的**，你现在没有外部依赖，用不上。
+
+### `fixture` 长什么样
+
+```python
+import pytest
+from app.repository import TodoRepository
+
+@pytest.fixture
+def repo():                      # ← 函数名就是 fixture 名
+    return TodoRepository()      # ← 每个用到它的测试，都会拿到一个"新的"
+
+def test_create_ok(repo):        # ← 参数名 repo = 声明"我要这个 fixture"
+    repo.create(...)             # ← 自动拿到干净 repo
+    assert ...
+
+def test_duplicate(repo):        # ← 又是新的一个，和上面的互不影响
+    ...
+```
+
+**关键机制**：
+1. `@pytest.fixture` 装饰一个函数，函数名成为"fixture 名"。
+2. 测试函数的**参数名**写 `repo`，pytest 就**自动调用**那个 fixture 函数，把返回值**注入**进来。
+3. **默认每个测试拿到的都是"新调用一次 fixture 函数"的结果**——这就是"自动新建、自动隔离"。你**不用**在每个测试里写 `repo = TodoRepository()`。
+4. 测试结束，fixture 里 `return` 的对象自然被丢弃（内存 dict，GC 回收），**下一个测试又是全新**。
+
+**所以 `fixture` 回答的是"怎么优雅地做准备工作"，不是"怎么造假对象"。** 你把"新建 repo"这件事**从每个测试里抽出来，写一次，全测试复用**——这才是 fixture 的价值：**去重 + 自动隔离**。
+
+---
+`fixture` 的"作用域"
+
+fixture 默认**每个测试函数调用一次**（`scope="function"`）。也可以设 `scope="module"`（整个文件共用一次）、`scope="session"`（整个测试会话一次）。
+
+**你的场景（repo 有状态）必须用默认 `function` 作用域**——每个测试一个新 repo。如果你设成 `module`，就变成"这个文件里所有测试共享一个 repo"，**又回到污染问题**。**记住：有状态的东西（repo、数据库连接）一律 `function` 作用域；无状态的（配置、只读常量）才可以放宽。**
+任边界"），**这就是分层测试的实感**：schema 的错在 `test_schemas.py` 抓，repository 只测"合法数据进来后的业务行为"。
+
+4.在调用别的函数和方法时需要注意**签名意识**，输入正确的参数
+
+5.在测试的时候要注意控制变量，一条只修改一处，不然多处出错无法精确定位
+
+6.模块之间有依赖（下层坏了上层炸），但测试按层隔离（test_schemas 不受 repository 影响，test_repository 只受 repository/schemas/exceptions 影响）。模块化的收益是"bug 的爆炸半径可控"，不是"模块之间互不影响"。
 
 
 

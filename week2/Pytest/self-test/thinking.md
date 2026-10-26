@@ -251,3 +251,50 @@ pydantic 的 `Field` 能表达"必填""长度"，但**能表达"唯一"吗**？
 2.二月30号的情况，我觉得应该会是通过吧，可能需要自己控制一下区间吗  
 3.是不是需要定义一个定义类和一个修改类？两个共用一个id，但内容不同？
 ```
+
+
+
+
+---
+
+
+
+上一条我问的 **Q1、Q2**，你还没答。这两个决定你 `tests/` 怎么写，不回我没法给你"测哪些用例"的施工单。
+
+### Q1（import 约定，决定测试文件第一行怎么写）
+
+你现在 `repository.py` 里写的是：
+```python
+from schemas import TodoCreate, TodoOut
+from exceptions import NotFoundError, DuplicateError
+```
+
+**问**：你打算**在哪个目录**运行 `pytest`？
+
+- A. 在项目根 `todo-api/` 下跑 → `from schemas import ...` 会报 `ModuleNotFoundError`，必须改成 `from app.schemas import ...`，且要 `app/__init__.py`
+- B. 在 `app/` 目录内跑 → 现在这样能跑，但 `uvicorn app.main:app` 和 Docker 里就会打架
+- C. 别的
+
+**这是必须现在定的"项目运行约定"**，不定的话测试文件第一行就写不对。我的建议是 **A**（项目根跑，`from app.xxx`），但**你来定**。
+
+### Q2（分层判断，这题测你有没有真懂"schema 层挡什么"）
+
+```python
+TodoCreate(title="", deadline=date(2024,1,1), level=5)
+```
+
+这行**会在什么时候、抛什么异常**？这个错误应该测在：
+
+- `tests/test_repository.py`（数据层测试）
+- 还是 `tests/test_api.py`（接口层测试）
+
+**为什么？**
+
+提示：想想 `TodoCreate` 是谁、它什么时候工作、`repository.create` 收到的是什么。**这题答对，说明你理解了"非法参数根本进不了 repository"——那你就不会在 `test_repository.py` 里写"level=5 测试"这种跑不起来的用例。**
+
+```
+Q1:在项目跟目录下吧，到时候改导包的位置，不过我在测试文件下面测试跟和根目录测试有什么区别？
+Q2：1.在输入title时，会报错，title不是必填的吗  
+    2.在输入level也会报错，只有1，2，3  
+    3.应该测在接口层吧，接口是不是负责接受这些参数信息的？
+```
