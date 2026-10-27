@@ -298,3 +298,50 @@ Q2：1.在输入title时，会报错，title不是必填的吗
     2.在输入level也会报错，只有1，2，3  
     3.应该测在接口层吧，接口是不是负责接受这些参数信息的？
 ```
+
+test_schemas.py 测的是"门挡不挡得住"，test_repository.py 测的是"进了门之后，5 个方法的业务行为"。这里有你项目最值钱的东西：
+
+4 种异常里的 404、409（不是 422，422 在上层测完了）
+
+你第一个坑的验收点：update 时 title 不变 → 不抛（不是 409）
+
+fixture：每个用例一个干净的 TodoRepository，避免测试间互相污染
+
+在给你施工单前，先回我一个问题（这题决定你怎么写 fixture）：
+
+Q：test_repository.py 里，多个测试函数都要"先建一个空 repo、再塞几条数据"。如果每个测试函数里手动 repo = TodoRepository()，会发生什么？为什么推荐用 pytest fixture 而不是每个函数自己 new？（提示：想想"测试之间要不要共享状态"、"如果一个测试删了数据，会不会影响下一个"）
+
+这题答完，我给你 test_repository.py 的用例清单（对着 docs/api.md 的 404/409/正常路径逐条）+ fixture 的写法思路，代码你自己写。 修完上面 4 条 + 回这题，test_schemas.py 正式封版。
+
+```
+测试之间互不影响，所有没有必要每一个都新建，都新建可能会浪费内存吗？我还有一个问题这里的pytest fixture是什么，一种mocks出来的数据库吗
+```
+
+
+Q：GET /todos/abc（id 传字母）在 FastAPI 里，会在哪一层被挡、返回什么状态码？为什么你 main.py 里不需要为"id 非整数"写一行校验代码？
+
+（提示：路由 @app.get("/todos/{todo_id}") 里 todo_id: int 的类型注解，是给谁看的？FastAPI 拿它干什么？——这题答对，你就理解"类型注解在 FastAPI 里不是注释，是运行时校验依据"，这是 FastAPI 最核心的设计。）
+
+先做变异测试，贴结果（哪条红了、几条绿），再答这题。 两个都完成，test_repository.py 封版，进 main.py。
+
+```
+在数据层就被拦下了吧，返回422，格式有问题，mian.py里面使用的格式都是已经默认成功可以使用的类型了
+```
+
+GET /todos/abc 在哪一层被挡？为什么 main.py 不用写校验？
+
+在入口层（FastAPI 的路径参数解析 + pydantic）被挡，不是数据层。
+
+main.py 不用写校验，因为 todo_id: int 这个类型注解本身就是校验声明——FastAPI 在调用你的函数之前，先按注解把 "abc" 转 int，转不了就 422，你的函数根本不会被调用。
+
+你 main.py 里要写的，只是"合法数据进来后调 repository"——非法数据在进入函数前就被 FastAPI 拦了。这就是"类型注解在 FastAPI 里是运行时校验依据，不是注释"——你答到了这一层，很好。
+
+Q：你的 repository.get(todo_id) 在 id 不存在时 raise NotFoundError。main.py 的 GET /todos/{todo_id} 路由函数里，你需要写 try: repo.get(...) except NotFoundError: return JSONResponse(404) 吗？
+
+如果需要 → 每个路由都写 try/except，5 个路由 5 段重复代码。
+
+如果不需要 → 那异常怎么变成 404 的？
+
+```
+是不是要设置一个统一的判断，在每一个需要输入id的地方都放入这个判断，如果存在就输出404
+```

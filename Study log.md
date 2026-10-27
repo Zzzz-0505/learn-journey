@@ -258,6 +258,8 @@ subsequent      随后的、后续的
 
 明天：先复习LangGraph语法部分，实现最小闭环
 
+---
+
 1.SQLite语法的关键：
 
 ```
@@ -278,6 +280,8 @@ conn.close()	                合本子	        关闭连接
 难点：
 
 明天：把增删改查接入到本地文里
+
+---
 
 1.在FastAPI中输入路径参数的时候，要注意顺序，在下面这种场景，要先找me的和其他id的
 ```python
@@ -352,6 +356,8 @@ async def read_items(q: Annotated[str | None, Query(max_length=50)] = None):
 
 
 明天：
+
+---
 
 1.pydantic的作用就是在一个文件里，事先定义好一个个类，里面写了一些必须的参数和参数类型，然后在函数输入或输出的参数里，加入定义好的类实现检验；它还可以自动生成JSON Schema，在Field里写的description、example，都会直接出现在Swagger UI文档里            
 
@@ -501,5 +507,118 @@ fixture 默认**每个测试函数调用一次**（`scope="function"`）。也�
 
 6.模块之间有依赖（下层坏了上层炸），但测试按层隔离（test_schemas 不受 repository 影响，test_repository 只受 repository/schemas/exceptions 影响）。模块化的收益是"bug 的爆炸半径可控"，不是"模块之间互不影响"。
 
+## Day13
+今天：
+
+难点：
+
+明天：
+
+1.在测试api时，为了解决全局变量导致测试互相污染，通过依赖注入的方式完成隔离；
+
+```python
+依赖注入的本质：
+        不要在函数内部自己创建依赖，而是通过参数“声明”你需要什么，由框架负责把东西递给你。
+    核心三要素：
+        1. 依赖提供者（Provider）
+            一个普通的函数（或类），负责“生产”依赖，返回给路由用。
+            def get_repo():
+                return TodoRepository()
+    
+        2. 声明依赖（Depends）
+            在路由函数参数里，用 Depends(提供者) 声明：
+            @app.post("/todos")
+            def create(data: TodoCreate, repo = Depends(get_repo)):
+                # FastAPI 看到 Depends(get_repo)，就会在调用 create 前先调用 get_repo()
+                # 把返回值作为 repo 参数传给 create
+                return repo.create(data)
+        
+        3. 依赖覆盖（Override）——测试的杀手锏
+            告诉 FastAPI：“别用原本的提供者，用我这个假/测试版。”
+            
+            app.dependency_overrides[get_repo] = lambda: TodoRepository()  # 每次给一个新的
+        
+        
+
+依赖注入的四大典型用法：
+用法 1：共享资源（数据库连接、配置、repo）
+@lru_cache
+def get_repo():
+    return TodoRepository()  # 生产环境全局唯一（单例）
+    
+用法 2：认证与权限（Token 校验）
+def get_current_user(token: str = Header(...)):
+    if token != "secret":
+        raise HTTPException(401, "Invalid token")
+    return {"user": "admin"}
+
+@app.get("/me")
+def me(user = Depends(get_current_user)):
+    return user
+    
+用法 3：依赖链（依赖也可以依赖别的）
+def get_db():
+    db = connect_db()
+    return db
+
+def get_user_repo(db = Depends(get_db)):  # 依赖里还能注入依赖
+    return UserRepository(db)
+
+@app.get("/users")
+def list_users(repo = Depends(get_user_repo)):  # 框架会自动递归解析
+    return repo.all()
+    
+用法 4：测试隔离
+@pytest.fixture
+def client():
+    test_repo = TodoRepository()  # 每个测试给全新实例
+    app.dependency_overrides[get_repo] = lambda: test_repo
+    yield TestClient(app)
+    app.dependency_overrides.clear()  # 清理，防止影响其他测试文件
+```
+2.在日志处理的时候要注意设置日志的参数，而且需要调用 logging.basicConfig，把这些参数真正喂给 Python 的日志系统  
+```py
+def setup_logging(level:str):
+    level = level.upper()
+    log_format = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+
+    logging.basicConfig( 
+        level=level,
+        format=log_format,
+        handlers=[logging.StreamHandler()]
+    )    
+```
+像这样，然后其中handlers是控制日志输出位置的，可以控制输入到终端或者是指定文件
+然后每一个文件需要导入而且在需要文件最开始就进行初始化：
+```py
+import logging
+logger = logging.getLogger(__name__)
+```
+
+3.dockerd创建就是把本地的文件所有都打包成一起，创建一个dockerfile文件，把python的版本，各种依赖都写进去，然后创建.dockerignore把不打包的东西分出来，控制密钥等，如下：
+```docker
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt . 
+RUN pip install --no-cache-dir -r requirements.txt
+COPY app ./app
+COPY main.py ./main.py 
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+4.在测试api的时候需要创建修饰器,来隔离各种测试环境，使用完清空
+```py
+@pytest.fixture
+def client():
+    test_repo = TodoRepository()
+
+    def override_get_repo():
+        return test_repo
+
+    app.dependency_overrides[get_repo]= override_get_repo
+    yield TestClient(app=app)
+
+    app.dependency_overrides.clear()
+```
 
 
